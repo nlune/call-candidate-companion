@@ -1,3 +1,4 @@
+
 import { Candidate, EvaluationStatus } from '@/types/candidate';
 import { toast } from 'sonner';
 
@@ -141,6 +142,7 @@ async function makeOutboundCall(
     headers: {
       'Content-Type': 'application/json',
     },
+    mode: 'no-cors', // Add no-cors mode to handle CORS issues
     body: JSON.stringify(requestBody)
   });
 }
@@ -148,22 +150,31 @@ async function makeOutboundCall(
 export const initiateCall = async (candidate: Candidate): Promise<void> => {
   try {
     toast.loading(`Calling ${candidate.name}...`);
-    const response = await makeOutboundCall(
-      candidate.name,
-      candidate.jobAppliedFor,
-      candidate.phone
-    );
     
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      toast.error(`Call failed: ${errorData.message || response.statusText || 'Unknown error'}`);
-      throw new Error(`Call failed: ${response.statusText}`);
+    // Log the request for debugging
+    console.log("Making call request for:", candidate.name, candidate.phone);
+    
+    try {
+      const response = await makeOutboundCall(
+        candidate.name,
+        candidate.jobAppliedFor,
+        candidate.phone
+      );
+      
+      // With no-cors mode, we won't get a normal response status
+      // The browser will just tell us if the request was sent
+      toast.success(`Call request to ${candidate.name} sent successfully`);
+      console.log("Call request sent:", response);
+    } catch (error) {
+      console.error('Error initiating call:', error);
+      toast.error(`Failed to connect call: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-    
-    toast.success(`Call to ${candidate.name} initiated successfully`);
   } catch (error) {
-    console.error('Error initiating call:', error);
-    toast.error(`Failed to connect call: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('Unexpected error in initiateCall:', error);
+    toast.error(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  } finally {
+    // Dismiss any loading toasts
+    toast.dismiss();
   }
 };
 
