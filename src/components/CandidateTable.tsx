@@ -13,6 +13,7 @@ import { Candidate } from '@/types/candidate';
 import StatusBadge from './StatusBadge';
 import { Phone, Calendar } from 'lucide-react';
 import { initiateCall, scheduleInterview } from '@/services/candidateService';
+import { Link } from 'react-router-dom';
 
 interface CandidateTableProps {
   candidates: Candidate[];
@@ -67,7 +68,11 @@ const CandidateTable: React.FC<CandidateTableProps> = ({
         <TableBody>
           {candidates.map((candidate) => (
             <TableRow key={candidate.id}>
-              <TableCell className="font-medium">{candidate.name}</TableCell>
+              <TableCell className="font-medium">
+                <Link to={`/candidate/${candidate.id}`} className="hover:underline text-blue-600">
+                  {candidate.name}
+                </Link>
+              </TableCell>
               <TableCell className="max-w-xs truncate">{candidate.summary}</TableCell>
               <TableCell>{candidate.jobAppliedFor}</TableCell>
               <TableCell>
@@ -75,16 +80,17 @@ const CandidateTable: React.FC<CandidateTableProps> = ({
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
-                  <Button 
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleCall(candidate)}
-                    disabled={candidate.status !== 'pending'}
-                    className="flex items-center gap-1"
-                  >
-                    <Phone className="h-4 w-4" />
-                    <span className="hidden sm:inline">Call</span>
-                  </Button>
+                  {candidate.status === 'pending' && (
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCall(candidate)}
+                      className="flex items-center gap-1"
+                    >
+                      <Phone className="h-4 w-4" />
+                      <span className="hidden sm:inline">Call</span>
+                    </Button>
+                  )}
                   
                   {candidate.status === 'pass' && (
                     <Button 

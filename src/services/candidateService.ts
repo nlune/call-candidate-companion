@@ -67,6 +67,21 @@ export const getCandidates = async (): Promise<Candidate[]> => {
   });
 };
 
+export const getCandidateById = async (id: string): Promise<Candidate> => {
+  // Simulate API call with a delay
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const candidate = mockCandidates.find(c => c.id === id);
+      if (candidate) {
+        resolve({ ...candidate });
+      } else {
+        toast.error("Candidate not found");
+        reject(new Error("Candidate not found"));
+      }
+    }, 500);
+  });
+};
+
 export const updateCandidateStatus = async (
   candidateId: string, 
   newStatus: EvaluationStatus
@@ -79,6 +94,28 @@ export const updateCandidateStatus = async (
         candidate.status = newStatus;
         toast.success(`${candidate.name}'s status updated to ${newStatus}`);
         resolve({ ...candidate });
+      } else {
+        toast.error("Candidate not found");
+        throw new Error("Candidate not found");
+      }
+    }, 500);
+  });
+};
+
+export const updateCandidate = async (
+  candidateId: string,
+  updatedCandidate: Candidate
+): Promise<Candidate> => {
+  // Simulate API call with a delay
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = mockCandidates.findIndex(c => c.id === candidateId);
+      if (index !== -1) {
+        // Preserve the ID when updating
+        updatedCandidate.id = candidateId;
+        mockCandidates[index] = { ...updatedCandidate };
+        toast.success(`${updatedCandidate.name}'s information updated`);
+        resolve({ ...updatedCandidate });
       } else {
         toast.error("Candidate not found");
         throw new Error("Candidate not found");
