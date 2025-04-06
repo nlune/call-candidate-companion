@@ -8,5 +8,5 @@ export interface Candidate {
   jobAppliedFor: string;
   status: EvaluationStatus;
   phone: string;
-  email: string;
+  transcript: string;
 }

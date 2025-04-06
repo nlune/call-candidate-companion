@@ -2,132 +2,146 @@
 import { Candidate, EvaluationStatus } from '@/types/candidate';
 import { toast } from 'sonner';
 
-// Mock data for candidates
-const mockCandidates: Candidate[] = [
-  {
-    id: '1',
-    name: 'Lune Wei',
-    summary: 'Deep learning and computer vision researcher with 3 years of experience.',
-    jobAppliedFor: 'Research Engineer',
-    status: 'pending',
-    phone: '+4915560176834',
-    email: ''
-  },
-  {
-    id: '2',
-    name: 'Sarah Johnson',
-    summary: 'Full-stack developer specializing in Node.js and React.',
-    jobAppliedFor: 'Full Stack Engineer',
-    status: 'pass',
-    phone: '+1-555-987-6543',
-    email: 'sarah.j@example.com'
-  },
-  {
-    id: '3',
-    name: 'Michael Brown',
-    summary: 'Backend developer with expertise in Python and Django.',
-    jobAppliedFor: 'Backend Developer',
-    status: 'fail',
-    phone: '+1-555-456-7890',
-    email: 'michael.b@example.com'
-  },
-  {
-    id: '4',
-    name: 'Emily Davis',
-    summary: 'UX/UI designer with a strong portfolio of mobile apps.',
-    jobAppliedFor: 'Senior UX Designer',
-    status: 'pending',
-    phone: '+1-555-789-0123',
-    email: 'emily.d@example.com'
-  },
-  {
-    id: '5',
-    name: 'Alex Wilson',
-    summary: 'DevOps engineer with experience in AWS and Kubernetes.',
-    jobAppliedFor: 'DevOps Engineer',
-    status: 'pass',
-    phone: '+1-555-234-5678',
-    email: 'alex.w@example.com'
-  },
-  {
-    id: '6',
-    name: 'Jessica Taylor',
-    summary: 'Product manager with background in agile methodologies.',
-    jobAppliedFor: 'Product Manager',
-    status: 'pending',
-    phone: '+1-555-345-6789',
-    email: 'jessica.t@example.com'
-  }
-];
 
 export const getCandidates = async (): Promise<Candidate[]> => {
-  // Simulate API call with a delay
-  return new Promise(resolve => {
-    setTimeout(() => resolve(mockCandidates), 500);
-  });
+  try {
+    const response = await fetch("http://localhost:8008/candidates/");
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const data = await response.json();
+    // Map backend fields to frontend candidate type
+    const candidates: Candidate[] = data.map((candidate: any) => ({
+      id: candidate.id.toString(), // Convert id to string if required by your type
+      name: candidate.name,
+      summary: candidate.summary,
+      jobAppliedFor: candidate.position, // Map 'position' from the database to 'jobAppliedFor'
+      status: candidate.status,
+      phone: candidate.phone_number, // Map 'phone_number' to 'phone'
+      transcript: candidate.call_transcript, // Email is not provided by the backend so we default to an empty string
+    }));
+    return candidates;
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to fetch candidates.");
+    return [];
+  }
 };
 
 export const getCandidateById = async (id: string): Promise<Candidate> => {
-  // Simulate API call with a delay
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const candidate = mockCandidates.find(c => c.id === id);
-      if (candidate) {
-        resolve({ ...candidate });
-      } else {
-        toast.error("Candidate not found");
-        reject(new Error("Candidate not found"));
-      }
-    }, 500);
-  });
+  try {
+    const response = await fetch(`http://localhost:8008/candidates/${id}`);
+    if (!response.ok) {
+      toast.error("Candidate not found");
+      throw new Error("Candidate not found");
+    }
+    const candidateData = await response.json();
+    // Map backend fields to frontend candidate type
+    const candidate: Candidate = {
+      id: candidateData.id.toString(), // Convert number to string if needed
+      name: candidateData.name,
+      summary: candidateData.summary,
+      jobAppliedFor: candidateData.position, // Map 'position' from backend to 'jobAppliedFor'
+      status: candidateData.status,
+      phone: candidateData.phone_number, // Map 'phone_number' to 'phone'
+      transcript: "", // The backend does not provide an email, so default to an empty string
+    };
+    return candidate;
+  } catch (error) {
+    toast.error("Candidate not found");
+    throw error;
+  }
 };
 
 export const updateCandidateStatus = async (
   candidateId: string, 
   newStatus: EvaluationStatus
 ): Promise<Candidate> => {
-  // Simulate API call with a delay
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const candidate = mockCandidates.find(c => c.id === candidateId);
-      if (candidate) {
-        candidate.status = newStatus;
-        toast.success(`${candidate.name}'s status updated to ${newStatus}`);
-        resolve({ ...candidate });
-      } else {
-        toast.error("Candidate not found");
-        throw new Error("Candidate not found");
-      }
-    }, 500);
-  });
+  try {
+    const response = await fetch(`http://localhost:8008/candidates/${candidateId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      // Only sending the status update in the payload
+      body: JSON.stringify({ status: newStatus })
+    });
+    
+    if (!response.ok) {
+      toast.error("Candidate not found");
+      throw new Error("Candidate not found");
+    }
+    
+    const candidateData = await response.json();
+    // Map the backend fields to your frontend Candidate type
+    const candidate: Candidate = {
+      id: candidateData.id.toString(),
+      name: candidateData.name,
+      summary: candidateData.summary,
+      jobAppliedFor: candidateData.position,
+      status: candidateData.status,
+      phone: candidateData.phone_number,
+      transcript: "", // Backend does not provide an email field
+    };
+    
+    toast.success(`${candidate.name}'s status updated to ${newStatus}`);
+    return candidate;
+  } catch (error) {
+    toast.error("Candidate not found");
+    throw error;
+  }
 };
 
 export const updateCandidate = async (
   candidateId: string,
   updatedCandidate: Candidate
 ): Promise<Candidate> => {
-  // Simulate API call with a delay
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const index = mockCandidates.findIndex(c => c.id === candidateId);
-      if (index !== -1) {
-        // Preserve the ID when updating
-        updatedCandidate.id = candidateId;
-        mockCandidates[index] = { ...updatedCandidate };
-        toast.success(`${updatedCandidate.name}'s information updated`);
-        resolve({ ...updatedCandidate });
-      } else {
-        toast.error("Candidate not found");
-        throw new Error("Candidate not found");
-      }
-    }, 500);
-  });
+  try {
+    // Create a payload that matches the backend's expected field names
+    const payload = {
+      name: updatedCandidate.name,
+      summary: updatedCandidate.summary,
+      position: updatedCandidate.jobAppliedFor, // Mapping frontend field to backend
+      phone_number: updatedCandidate.phone,
+      status: updatedCandidate.status,
+      // Optionally include call_transcript if needed, e.g.:
+      // call_transcript: updatedCandidate.callTranscript || ""
+    };
+    
+    const response = await fetch(`http://localhost:8008/candidates/${candidateId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    
+    if (!response.ok) {
+      toast.error("Candidate not found");
+      throw new Error("Candidate not found");
+    }
+    
+    const candidateData = await response.json();
+    // Map the updated candidate data to your frontend Candidate type
+    const candidate: Candidate = {
+      id: candidateData.id.toString(),
+      name: candidateData.name,
+      summary: candidateData.summary,
+      jobAppliedFor: candidateData.position,
+      status: candidateData.status,
+      phone: candidateData.phone_number,
+      transcript: "", // Email is not provided by the backend
+    };
+    
+    toast.success(`${candidate.name}'s information updated`);
+    return candidate;
+  } catch (error) {
+    toast.error("Candidate not found");
+    throw error;
+  }
 };
 
 async function makeOutboundCall(
   candidateName: string,
   position: string,
-  phoneNumber: string
+  phoneNumber: string,
+  candidateID: string
 ): Promise<Response> {
   const apiUrl = "https://ae9c-2a02-2455-84a9-d100-acec-901-f1fa-ea8.ngrok-free.app/outbound-call";
   
@@ -135,9 +149,10 @@ async function makeOutboundCall(
   const formattedPhone = phoneNumber.replace(/[^\d+]/g, '');
   
   const requestBody = {
-    prompt: `You are Stuart, an interviewer for the ${position} position. Conduct a professional interview with no more than 3-5 questions, for a maximum of 10 minutes.`,
-    first_message: `Hello ${candidateName}, I'm Stuart from VoiceCo and I'm calling you regarding the ${position} role. Do you have a moment for a quick phone screening?`,
-    number: formattedPhone
+    prompt: `You are Stuart, an interviewer for the ${position} position. Conduct a professional interview with no more than 3 questions, for a maximum of 10 minutes. Try to keep all responses short and concise, and sound as much like a human as possible.`,
+    first_message: `Hello ${candidateName.split(" ")[0]}, I'm Stuart from VoiceCo and I'm calling you regarding the ${position} role. Do you have a moment for a quick phone screening?`,
+    number: formattedPhone,
+    candidate_id: candidateID
   };
 
   console.log("Outbound call request payload:", JSON.stringify(requestBody, null, 2));
@@ -165,7 +180,8 @@ export const initiateCall = async (candidate: Candidate): Promise<void> => {
       const response = await makeOutboundCall(
         candidate.name,
         candidate.jobAppliedFor,
-        candidate.phone
+        candidate.phone,
+        candidate.id
       );
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
