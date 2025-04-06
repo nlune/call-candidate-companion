@@ -1,4 +1,3 @@
-
 import { Candidate, EvaluationStatus } from '@/types/candidate';
 import { toast } from 'sonner';
 
@@ -124,14 +123,48 @@ export const updateCandidate = async (
   });
 };
 
-export const initiateCall = async (candidate: Candidate): Promise<void> => {
-  // Simulate initiating a call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      toast.success(`Initiating call to ${candidate.name} at ${candidate.phone}`);
-      resolve();
-    }, 500);
+async function makeOutboundCall(
+  candidateName: string,
+  position: string,
+  phoneNumber: string
+): Promise<Response> {
+  const apiUrl = "https://ae9c-2a02-2455-84a9-d100-acec-901-f1fa-ea8.ngrok-free.app/outbound-call";
+  
+  const requestBody = {
+    prompt: `You are Stuart, an interviewer for the ${position} position. Conduct a professional interview by asking about the candidate.`,
+    first_message: `Hello ${candidateName}, I'm Stuart from VoiceCo and I'm calling you regarding the ${position} role. Do you have a moment for a quick phone screening?`,
+    number: phoneNumber
+  };
+
+  return fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestBody)
   });
+}
+
+export const initiateCall = async (candidate: Candidate): Promise<void> => {
+  try {
+    toast.loading(`Calling ${candidate.name}...`);
+    const response = await makeOutboundCall(
+      candidate.name,
+      candidate.jobAppliedFor,
+      candidate.phone
+    );
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      toast.error(`Call failed: ${errorData.message || response.statusText || 'Unknown error'}`);
+      throw new Error(`Call failed: ${response.statusText}`);
+    }
+    
+    toast.success(`Call to ${candidate.name} initiated successfully`);
+  } catch (error) {
+    console.error('Error initiating call:', error);
+    toast.error(`Failed to connect call: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 };
 
 export const scheduleInterview = async (candidate: Candidate): Promise<void> => {
