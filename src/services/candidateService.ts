@@ -131,16 +131,22 @@ async function makeOutboundCall(
 ): Promise<Response> {
   const apiUrl = "https://ae9c-2a02-2455-84a9-d100-acec-901-f1fa-ea8.ngrok-free.app/outbound-call";
   
+  // Ensure the phone number is in E.164 format (remove any non-numeric characters except +)
+  const formattedPhone = phoneNumber.replace(/[^\d+]/g, '');
+  
   const requestBody = {
     prompt: `You are Stuart, an interviewer for the ${position} position. Conduct a professional interview by asking about the candidate.`,
     first_message: `Hello ${candidateName}, I'm Stuart from VoiceCo and I'm calling you regarding the ${position} role. Do you have a moment for a quick phone screening?`,
-    number: phoneNumber
+    number: formattedPhone
   };
+
+  console.log("Outbound call request payload:", JSON.stringify(requestBody, null, 2));
 
   return fetch(apiUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Accept': 'application/json'
     },
     mode: 'no-cors', // Add no-cors mode to handle CORS issues
     body: JSON.stringify(requestBody)
