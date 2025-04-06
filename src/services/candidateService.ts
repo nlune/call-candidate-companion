@@ -1,6 +1,6 @@
 
 import { Candidate, EvaluationStatus } from '@/types/candidate';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 // Mock data for candidates
 const mockCandidates: Candidate[] = [
