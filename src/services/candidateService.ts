@@ -6,12 +6,12 @@ import { toast } from 'sonner';
 const mockCandidates: Candidate[] = [
   {
     id: '1',
-    name: 'John Smith',
-    summary: 'Experienced frontend developer with 5 years of React experience.',
-    jobAppliedFor: 'Senior Frontend Developer',
+    name: 'Lune Wei',
+    summary: 'Deep learning and computer vision researcher with 3 years of experience.',
+    jobAppliedFor: 'Research Engineer',
     status: 'pending',
-    phone: '+1-555-123-4567',
-    email: 'john.smith@example.com'
+    phone: '+4915560176834',
+    email: ''
   },
   {
     id: '2',
@@ -135,7 +135,7 @@ async function makeOutboundCall(
   const formattedPhone = phoneNumber.replace(/[^\d+]/g, '');
   
   const requestBody = {
-    prompt: `You are Stuart, an interviewer for the ${position} position. Conduct a professional interview by asking about the candidate.`,
+    prompt: `You are Stuart, an interviewer for the ${position} position. Conduct a professional interview with no more than 3-5 questions, for a maximum of 10 minutes.`,
     first_message: `Hello ${candidateName}, I'm Stuart from VoiceCo and I'm calling you regarding the ${position} role. Do you have a moment for a quick phone screening?`,
     number: formattedPhone
   };
@@ -148,7 +148,8 @@ async function makeOutboundCall(
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
-    mode: 'no-cors', // Add no-cors mode to handle CORS issues
+    // mode: 'no-cors', // Add no-cors mode to handle CORS issues
+    // credentials: 'include',
     body: JSON.stringify(requestBody)
   });
 }
@@ -166,6 +167,9 @@ export const initiateCall = async (candidate: Candidate): Promise<void> => {
         candidate.jobAppliedFor,
         candidate.phone
       );
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
       
       // With no-cors mode, we won't get a normal response status
       // The browser will just tell us if the request was sent
